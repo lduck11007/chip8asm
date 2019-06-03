@@ -46,7 +46,7 @@ typedef struct Token{
 		uint8_t reg;
 		uint16_t value;
 		enum Mnemonic mnemonic;
-		char* label;
+		char label[17];
 	};
 } Token;
 
@@ -86,31 +86,21 @@ void print_token(){
 void next_token(){
 	char* start;
 	char* end;
+	char buf[17];
 	if(*stream == 0){
 		token.tokenkind = TOKEN_EOF;
 		return;
 	}
+	for(;*stream == 32; stream++);
 	start = stream;
-	switch(*stream){
-		case '0':
-		case '1':
-		case '2':
-		case '3':
-		case '4':
-		case '5':
-		case '6':
-		case '7':
-		case '8':
-		case '9': {
-			uint64_t val = 0;
-			while(isdigit(*stream)){
-				val *= 10;
-				val += *stream++ - '0';
-			}
-			token.tokenkind = TOKEN_LITERAL;
-			token.value = val;
-			break;
-		}
+	for(;!(*stream==32); stream++);
+	end = stream;
+	sprintf(buf, "%.*s", end-start, start);
+	putchar(buf[end-start]);
+	if(buf[(end-start)-1] == ':') {
+		buf[(end-start)-1] = 0;
+		token.tokenkind = TOKEN_LABEL;
+		strcpy(token.label, buf);
 	}
 }
 
@@ -125,6 +115,13 @@ void stripcomments(char *s) {
 	b += 2;
 	memmove(a, b, len-(b-a));
     }
+}
+
+void stripnewlines(char* s){
+	for(int i = 0; !(*(s+i)==0) ;i++){
+		if(*(s+i)== 13 || *(s+i) == 10)
+			*(s+i) = 32;
+	}
 }
 
 void fatal(const char *fmt, ...){
@@ -151,7 +148,9 @@ int main(int argc, char* argv[]){
 	*(stream+fsize) = 0;
 	tokens = NULL; 
 	stripcomments(stream);
+	stripnewlines(stream);
 	next_token();
+	print_token();
 	print_token();
 
 }

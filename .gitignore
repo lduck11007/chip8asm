@@ -53,3 +53,5 @@ dkms.conf
 
 #other
 .vscode
+main
+*.asm

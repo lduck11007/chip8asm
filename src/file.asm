@@ -1,8 +1,4 @@
-324357
-
-
-
-/* data:
-dw 0x34ea 
-RET
-ADD v0 43; */
+main:
+AND V3 V0
+SNE V2 0x45
+DW 0x4433
