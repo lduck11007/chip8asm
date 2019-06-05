@@ -15,6 +15,7 @@ enum TokenKind {
 	TOKEN_LITERAL,
 	TOKEN_MNEMONIC,
 	TOKEN_REGISTER,
+	TOKEN_UNKNOWN
 };
 
 enum Mnemonic{
@@ -105,6 +106,10 @@ void print_token(){
 			printf("REGISTER\n");
 			printf("Reg: %d\t0x%x\n", token.reg, token.reg);
 			break;
+		case TOKEN_UNKNOWN:
+			printf("UNKNOWN TOKEN\n");
+			printf("%s\n", token.label);
+			break;
 	}
 	printf("\n");
 }
@@ -119,7 +124,7 @@ void next_token(){
 	}
 	for(;*stream == 32; stream++);
 	start = stream;
-	for(;*stream!=32; stream++);
+	for(;(*stream!=32)&&(*stream!=0); stream++);
 	end = stream;
 	buf = str_intern_range(start, end);
 	if(buf[strlen(buf)-1] == ':'){
@@ -140,7 +145,11 @@ void next_token(){
 			token.reg = *(buf+1) - 'a' + 10;
 		return;
 	} else if((str_intern_range(buf, buf+2) == str_intern("0x"))||(str_intern_range(buf, buf+2) == str_intern("0X"))){
-		printf("HEX!!!!!\n");    //<---- You're up to here idiot
+		token.tokenkind = TOKEN_LITERAL;
+		token.value = strtol(str_intern_range(buf+2, buf+6), NULL, 16);
+	} else {
+		token.tokenkind = TOKEN_UNKNOWN;
+		token.label = buf;
 	}
 }
 
@@ -158,10 +167,13 @@ void stripcomments(char *s) {
 }
 
 void stripnewlines(char* s){
+	int len;
 	for(int i = 0; *(s+i)!=0 ;i++){
 		if(*(s+i)== 13 || *(s+i) == 10)
 			*(s+i) = 32;
 	}
+	for(len = strlen(s)-1; *(s+len)!= 32; len--);
+	*(s+len) = 0;
 }
 
 void fatal(const char *fmt, ...){
@@ -171,6 +183,14 @@ void fatal(const char *fmt, ...){
 	printf("\n");
 	va_end(args);
 	exit(1);
+}
+
+void parse(){
+	do{
+	token = emptyToken;
+	next_token();
+	print_token();
+	} while(token.tokenkind != TOKEN_EOF);
 }
 
 int main(int argc, char* argv[]){
@@ -189,16 +209,9 @@ int main(int argc, char* argv[]){
 	tokens = NULL; 
 	stripcomments(stream);
 	stripnewlines(stream);
-	next_token();
-	print_token();
-	token = emptyToken;
-	next_token();
-	print_token();
-	token = emptyToken;
-	next_token();
-	print_token();
-	token = emptyToken;
-	next_token();
-	print_token();
 
+	for(int i = 0; *(stream+i) != 0; i++){
+		printf("%c:\t%d\n", *(stream+i), *(stream+i));
+	}
+	parse();
 }
