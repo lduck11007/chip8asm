@@ -30,3 +30,36 @@ void *buf__grow(const void *buf, size_t new_len, size_t elem_size) {
 	new_hdr->cap = new_cap;
 	return new_hdr->buf;
 }
+
+void stripcomments(char *s) {
+    char *a, *b;
+    int len = strlen(s) + 1;
+ 
+    while ((a = strstr(s, "/*")) != NULL) {
+	b = strstr(a+2, "*/");
+	if (b == NULL)
+	    break;
+	b += 2;
+	memmove(a, b, len-(b-a));
+    }
+}
+
+void trimTrailing(char* str){
+    int index, i;
+    index = -1;
+    i = 0;
+    while(str[i] != '\0'){
+        if(str[i] != ' ' && str[i] != '\t' && str[i] != '\n'){
+            index= i;
+        }
+	i++;
+    }
+	str[index + 1] = '\0';
+}
+
+void stripnewlines(char* s){
+	for(int i = 0; *(s+i)!=0 ;i++){
+		if(*(s+i)== 13 || *(s+i) == 10)
+			*(s+i) = 32;
+	}
+}

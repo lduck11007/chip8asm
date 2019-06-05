@@ -96,7 +96,7 @@ void print_token(){
 			break;
 		case TOKEN_LITERAL:
 			printf("LITERAL\n");
-			printf("value: %x\n", token.value);
+			printf("value: %d\n", token.value);
 			break;
 		case TOKEN_MNEMONIC:
 			printf("MNEMONIC\n");
@@ -147,33 +147,110 @@ void next_token(){
 	} else if((str_intern_range(buf, buf+2) == str_intern("0x"))||(str_intern_range(buf, buf+2) == str_intern("0X"))){
 		token.tokenkind = TOKEN_LITERAL;
 		token.value = strtol(str_intern_range(buf+2, buf+6), NULL, 16);
+		return;
+	}
+	if(buf == str_intern("CLS")){
+		token.tokenkind = TOKEN_MNEMONIC;
+		token.mnemonic = CLS;
+		return;
+	} else if(buf == str_intern("RET")){
+		token.tokenkind = TOKEN_MNEMONIC;
+   		token.mnemonic = RET;
+   		return;
+ 	}
+	else if(buf == str_intern("SYS")){
+		token.tokenkind = TOKEN_MNEMONIC;
+		token.mnemonic = SYS;
+	return;
+	}
+	else if(buf == str_intern("JP")){
+		token.tokenkind = TOKEN_MNEMONIC;
+		token.mnemonic = JP;
+	return;
+	}
+	else if(buf == str_intern("CALL")){
+		token.tokenkind = TOKEN_MNEMONIC;
+		token.mnemonic = CALL;
+	return;
+	}
+	else if(buf == str_intern("SE")){
+		token.tokenkind = TOKEN_MNEMONIC;
+		token.mnemonic = SE;
+	return;
+	}
+	else if(buf == str_intern("SNE")){
+		token.tokenkind = TOKEN_MNEMONIC;
+		token.mnemonic = SNE;
+	return;
+	}
+	else if(buf == str_intern("LD")){
+		token.tokenkind = TOKEN_MNEMONIC;
+		token.mnemonic = LD;
+	return;
+	}
+	else if(buf == str_intern("ADD")){
+		token.tokenkind = TOKEN_MNEMONIC;
+		token.mnemonic = ADD;
+	return;
+	}
+	else if(buf == str_intern("OR")){
+		token.tokenkind = TOKEN_MNEMONIC;
+		token.mnemonic = OR;
+	return;
+	}
+	else if(buf == str_intern("AND")){
+		token.tokenkind = TOKEN_MNEMONIC;
+		token.mnemonic = AND;
+	return;
+	}
+	else if(buf == str_intern("XOR")){
+		token.tokenkind = TOKEN_MNEMONIC;
+		token.mnemonic = XOR;
+	return;
+	}
+	else if(buf == str_intern("SUB")){
+		token.tokenkind = TOKEN_MNEMONIC;
+		token.mnemonic = SUB;
+	return;
+	}
+	else if(buf == str_intern("SHR")){
+		token.tokenkind = TOKEN_MNEMONIC;
+		token.mnemonic = SHR;
+	return;
+	}
+	else if(buf == str_intern("SUBN")){
+		token.tokenkind = TOKEN_MNEMONIC;
+		token.mnemonic = SUBN;
+	return;
+	}
+	else if(buf == str_intern("SHL")){
+		token.tokenkind = TOKEN_MNEMONIC;
+		token.mnemonic = SHL;
+	return;
+	}
+	else if(buf == str_intern("RND")){
+		token.tokenkind = TOKEN_MNEMONIC;
+		token.mnemonic = RND;
+	return;
+	}
+	else if(buf == str_intern("DRW")){
+		token.tokenkind = TOKEN_MNEMONIC;
+		token.mnemonic = DRW;
+	return;
+	}
+	else if(buf == str_intern("SKP")){
+		token.tokenkind = TOKEN_MNEMONIC;
+		token.mnemonic = SKP;
+	return;
+	}
+	else if(buf == str_intern("SKNP")){
+		token.tokenkind = TOKEN_MNEMONIC;
+		token.mnemonic = SKNP;
+	return;
 	} else {
 		token.tokenkind = TOKEN_UNKNOWN;
 		token.label = buf;
 	}
-}
-
-void stripcomments(char *s) {
-    char *a, *b;
-    int len = strlen(s) + 1;
- 
-    while ((a = strstr(s, "/*")) != NULL) {
-	b = strstr(a+2, "*/");
-	if (b == NULL)
-	    break;
-	b += 2;
-	memmove(a, b, len-(b-a));
-    }
-}
-
-void stripnewlines(char* s){
-	int len;
-	for(int i = 0; *(s+i)!=0 ;i++){
-		if(*(s+i)== 13 || *(s+i) == 10)
-			*(s+i) = 32;
-	}
-	for(len = strlen(s)-1; *(s+len)!= 32; len--);
-	*(s+len) = 0;
 }
 
 void fatal(const char *fmt, ...){
@@ -209,6 +286,7 @@ int main(int argc, char* argv[]){
 	tokens = NULL; 
 	stripcomments(stream);
 	stripnewlines(stream);
+	trimTrailing(stream);
 
 	for(int i = 0; *(stream+i) != 0; i++){
 		printf("%c:\t%d\n", *(stream+i), *(stream+i));
