@@ -46,13 +46,38 @@ typedef struct Token{
 		uint8_t reg;
 		uint16_t value;
 		enum Mnemonic mnemonic;
-		char label[17];
+		char* label;
 	};
 } Token;
+
+typedef struct InternStr{
+	size_t len;
+	const char* str;
+} InternStr;
 
 char* stream;
 Token token;
 Token* tokens;
+Token emptyToken;
+InternStr* interns;
+
+char *str_intern_range(const char *start, const char *end){
+	size_t len = end - start;
+	for(size_t i = 0; i < buf_len(interns); i++){
+		if(interns[i].len == len && strncmp(interns[i].str, start, len) == 0){
+			return interns[i].str;
+		}
+	}
+	char *str = malloc(len + 1);
+	memcpy(str, start, len);
+	str[len] = 0; //null byte
+	buf_push(interns, ((InternStr){len, str}));
+	return str;
+}
+
+char *str_intern(const char *str) {		//only works with null-byte terminated strings
+	return str_intern_range(str, str + strlen(str));
+}
 
 void print_token(){
 	printf("Token: ");
@@ -78,29 +103,44 @@ void print_token(){
 			break;
 		case TOKEN_REGISTER:
 			printf("REGISTER\n");
-			printf("Reg: %d\n", token.reg);
+			printf("Reg: %d\t0x%x\n", token.reg, token.reg);
 			break;
 	}
+	printf("\n");
 }
 
 void next_token(){
 	char* start;
 	char* end;
-	char buf[17];
+	char* buf;
 	if(*stream == 0){
 		token.tokenkind = TOKEN_EOF;
 		return;
 	}
 	for(;*stream == 32; stream++);
 	start = stream;
-	for(;!(*stream==32); stream++);
+	for(;*stream!=32; stream++);
 	end = stream;
-	sprintf(buf, "%.*s", end-start, start);
-	putchar(buf[end-start]);
-	if(buf[(end-start)-1] == ':') {
-		buf[(end-start)-1] = 0;
+	buf = str_intern_range(start, end);
+	if(buf[strlen(buf)-1] == ':'){
+		buf[strlen(buf)-1] = 0;
 		token.tokenkind = TOKEN_LABEL;
-		strcpy(token.label, buf);
+		token.label = str_intern(buf);
+		return;
+	} else if(buf == str_intern("dw") || buf == str_intern("DW")){
+		token.tokenkind = TOKEN_DIRECTIVE;
+		return;
+	} else if((*buf == 'v' || *buf == 'V') && isxdigit(*(buf+1))){
+		token.tokenkind = TOKEN_REGISTER;
+		if (*(buf+1) >= '0' && *(buf+1) <= '9')
+			token.reg = *(buf+1) - '0';
+		if (*(buf+1) >= 'A' && *(buf+1) <= 'F')
+			token.reg = *(buf+1) - 'A' + 10;
+		if (*(buf+1) >= 'a' && *(buf+1) <= 'f')
+			token.reg = *(buf+1) - 'a' + 10;
+		return;
+	} else if((str_intern_range(buf, buf+2) == str_intern("0x"))||(str_intern_range(buf, buf+2) == str_intern("0X"))){
+		printf("HEX!!!!!\n");    //<---- You're up to here idiot
 	}
 }
 
@@ -118,7 +158,7 @@ void stripcomments(char *s) {
 }
 
 void stripnewlines(char* s){
-	for(int i = 0; !(*(s+i)==0) ;i++){
+	for(int i = 0; *(s+i)!=0 ;i++){
 		if(*(s+i)== 13 || *(s+i) == 10)
 			*(s+i) = 32;
 	}
@@ -151,6 +191,14 @@ int main(int argc, char* argv[]){
 	stripnewlines(stream);
 	next_token();
 	print_token();
+	token = emptyToken;
+	next_token();
+	print_token();
+	token = emptyToken;
+	next_token();
+	print_token();
+	token = emptyToken;
+	next_token();
 	print_token();
 
 }
