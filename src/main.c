@@ -59,7 +59,6 @@ typedef struct InternStr{
 char* stream;
 Token token;
 Token* tokens;
-Token emptyToken;
 InternStr* interns;
 
 char *str_intern_range(const char *start, const char *end){
@@ -122,7 +121,7 @@ void next_token(){
 	for(;(*stream!=32)&&(*stream!=0); stream++);
 	end = stream;
 	buf = str_intern_range(start, end);
-	if((buf[strlen(buf)-1] == ':') && isValidLabel(buf)){
+	if((buf[strlen(buf)-1] == ':') && isValidLabel(str_intern_range(start, end-1))){
 		buf[strlen(buf)-1] = 0;
 		token.tokenkind = TOKEN_LABEL;
 		token.label = str_intern(buf);
@@ -151,8 +150,7 @@ void next_token(){
 		token.tokenkind = TOKEN_LITERAL;
 		token.value = strtol(str_intern_range(buf+2, end), NULL, 2);
 		return;
-	}
-	if(buf == str_intern("CLS")){
+	} else if(buf == str_intern("CLS")){
 		token.tokenkind = TOKEN_MNEMONIC;
 		token.mnemonic = CLS;
 		return;
@@ -269,11 +267,12 @@ void fatal(const char *fmt, ...){
 }
 
 void parse_test(){
-	do{
-	//token = emptyToken;
 	next_token();
-	print_token(token);
-	} while(token.tokenkind != TOKEN_EOF);
+	
+	while(token.tokenkind != TOKEN_EOF){
+		print_token(token);
+		next_token();
+	}
 }
 
 int main(int argc, char* argv[]){
@@ -294,7 +293,6 @@ int main(int argc, char* argv[]){
 	stripnewlines(stream);
 	trimTrailing(stream);
 	parse_test();
-	printf("%d\n", buf_len(tokens));
 	for(int i = 0; i < buf_len(tokens); i++)
 		print_token(tokens[i]);
 }
