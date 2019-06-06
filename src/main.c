@@ -10,7 +10,6 @@
 enum TokenKind {
 	TOKEN_EOF,
 	TOKEN_LABEL,
-	TOKEN_DIRECTIVE,
 	TOKEN_LITERAL,
 	TOKEN_MNEMONIC,
 	TOKEN_REGISTER,
@@ -39,6 +38,7 @@ enum Mnemonic{
 	DRW,
 	SKP,
 	SKNP,
+	DW,
 };
 
 typedef struct Token{
@@ -87,9 +87,6 @@ void print_token(Token a){
 		case TOKEN_LABEL:
 			printf("TOKEN LABEL: %s\n", token.label);
 			break;
-		case TOKEN_DIRECTIVE:
-			printf("TOKEN DIRECTIVE: %s\n", "dw"); // no other directives so far
-			break;
 		case TOKEN_LITERAL:
 			printf("TOKEN LITERAL: %d\t0x%x\n", token.value, token.value);
 			break;
@@ -126,9 +123,6 @@ void next_token(){
 		token.tokenkind = TOKEN_LABEL;
 		token.label = str_intern(buf);
 		return;
-	} else if(buf == str_intern("dw") || buf == str_intern("DW")){
-		token.tokenkind = TOKEN_DIRECTIVE;
-		return;
 	} else if((*buf == 'v' || *buf == 'V') && isxdigit(*(buf+1))){
 		token.tokenkind = TOKEN_REGISTER;
 		if (*(buf+1) >= '0' && *(buf+1) <= '9')
@@ -158,7 +152,11 @@ void next_token(){
 		token.tokenkind = TOKEN_MNEMONIC;
    		token.mnemonic = RET;
    		return;
- 	}
+ 	} else if(buf == str_intern("DW")){
+		 token.tokenkind = TOKEN_MNEMONIC;
+		 token.mnemonic = DW;
+		 return;
+	 }
 	else if(buf == str_intern("SYS")){
 		token.tokenkind = TOKEN_MNEMONIC;
 		token.mnemonic = SYS;
@@ -275,6 +273,17 @@ void parse_test(){
 	}
 }
 
+void parse_program(){
+	if(token.tokenkind == TOKEN_EOF)
+		next();
+	parse_line();
+}
+
+void next(){
+	buf_push(tokens, token);
+	next_token();
+}
+
 int main(int argc, char* argv[]){
     if(argc < 2)
         fatal("Usage: ./chip8asm <file.ch8>");
@@ -292,7 +301,9 @@ int main(int argc, char* argv[]){
 	stripcomments(stream);
 	stripnewlines(stream);
 	trimTrailing(stream);
-	parse_test();
+	next_token();
+	parse_program();
+	/*parse_test();
 	for(int i = 0; i < buf_len(tokens); i++)
-		print_token(tokens[i]);
+		print_token(tokens[i]);*/
 }
