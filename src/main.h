@@ -32,16 +32,7 @@ void *buf__grow(const void *buf, size_t new_len, size_t elem_size) {
 }
 
 void stripcomments(char *s) {
-    char *a, *b;
-    int len = strlen(s) + 1;
- 
-    while ((a = strstr(s, "/*")) != NULL) {
-	b = strstr(a+2, "*/");
-	if (b == NULL)
-	    break;
-	b += 2;
-	memmove(a, b, len-(b-a));
-    }
+    return;			//TODO
 }
 
 void trimTrailing(char* str){
@@ -62,4 +53,11 @@ void stripnewlines(char* s){
 		if(*(s+i)== 13 || *(s+i) == 10)
 			*(s+i) = 32;
 	}
+}
+
+int isValidLabel(char* s){
+	for(int i = 0; i < strlen(s); i++)
+		if(!(isalnum(*(s+i)) || *(s+i) == '-'))
+			return 0;
+	return 1;
 }

@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stddef.h>
-#include <assert.h>
 #include <ctype.h>
 #include <string.h>
 #include <stdarg.h>
@@ -15,7 +14,8 @@ enum TokenKind {
 	TOKEN_LITERAL,
 	TOKEN_MNEMONIC,
 	TOKEN_REGISTER,
-	TOKEN_UNKNOWN
+	TOKEN_UNKNOWN,
+	TOKEN_LOCATION,
 };
 
 enum Mnemonic{
@@ -80,38 +80,33 @@ char *str_intern(const char *str) {		//only works with null-byte terminated stri
 	return str_intern_range(str, str + strlen(str));
 }
 
-void print_token(){
-	printf("Token: ");
-	switch(token.tokenkind){
+void print_token(Token a){
+	switch(a.tokenkind){
 		case TOKEN_EOF:
-			printf("EOF\n");
+			printf("TOKEN EOF\n");
 			break;
 		case TOKEN_LABEL:
-			printf("LABEL\n");
-			printf("label: %s\n", token.label);
+			printf("TOKEN LABEL: %s\n", token.label);
 			break;
 		case TOKEN_DIRECTIVE:
-			printf("DIRECTIVE\n");
-			printf("directive: %s\n", "dw"); // no other directives so far
+			printf("TOKEN DIRECTIVE: %s\n", "dw"); // no other directives so far
 			break;
 		case TOKEN_LITERAL:
-			printf("LITERAL\n");
-			printf("value: %d\n", token.value);
+			printf("TOKEN LITERAL: %d\t0x%x\n", token.value, token.value);
 			break;
 		case TOKEN_MNEMONIC:
-			printf("MNEMONIC\n");
-			printf ("mnemonic: %d\n", token.mnemonic);
+			printf ("TOKEN MNEMONIC: %d\n", token.mnemonic);
 			break;
 		case TOKEN_REGISTER:
-			printf("REGISTER\n");
-			printf("Reg: %d\t0x%x\n", token.reg, token.reg);
+			printf("TOKEN REGISTER: %d\t0x%x\n", token.reg, token.reg);
+			break;
+		case TOKEN_LOCATION:
+			printf("TOKEN LOCATION: %s\n", token.label);
 			break;
 		case TOKEN_UNKNOWN:
-			printf("UNKNOWN TOKEN\n");
-			printf("%s\n", token.label);
+			printf("UNKNOWN TOKEN: %s\n", token.label);
 			break;
 	}
-	printf("\n");
 }
 
 void next_token(){
@@ -127,7 +122,7 @@ void next_token(){
 	for(;(*stream!=32)&&(*stream!=0); stream++);
 	end = stream;
 	buf = str_intern_range(start, end);
-	if(buf[strlen(buf)-1] == ':'){
+	if((buf[strlen(buf)-1] == ':') && isValidLabel(buf)){
 		buf[strlen(buf)-1] = 0;
 		token.tokenkind = TOKEN_LABEL;
 		token.label = str_intern(buf);
@@ -146,7 +141,15 @@ void next_token(){
 		return;
 	} else if((str_intern_range(buf, buf+2) == str_intern("0x"))||(str_intern_range(buf, buf+2) == str_intern("0X"))){
 		token.tokenkind = TOKEN_LITERAL;
-		token.value = strtol(str_intern_range(buf+2, buf+6), NULL, 16);
+		token.value = strtol(str_intern_range(buf+2, end), NULL, 16);
+		return;
+	} else if((str_intern_range(buf, buf+2) == str_intern("0d"))||(str_intern_range(buf, buf+2) == str_intern("0D"))){
+		token.tokenkind = TOKEN_LITERAL;
+		token.value = strtol(str_intern_range(buf+2, end), NULL, 10);
+		return;
+	} else if((str_intern_range(buf, buf+2) == str_intern("0b"))||(str_intern_range(buf, buf+2) == str_intern("0B"))){
+		token.tokenkind = TOKEN_LITERAL;
+		token.value = strtol(str_intern_range(buf+2, end), NULL, 2);
 		return;
 	}
 	if(buf == str_intern("CLS")){
@@ -247,6 +250,9 @@ void next_token(){
 		token.tokenkind = TOKEN_MNEMONIC;
 		token.mnemonic = SKNP;
 	return;
+	} else if(isValidLabel(buf)){
+		token.tokenkind = TOKEN_LOCATION;
+		token.label = buf;
 	} else {
 		token.tokenkind = TOKEN_UNKNOWN;
 		token.label = buf;
@@ -262,11 +268,11 @@ void fatal(const char *fmt, ...){
 	exit(1);
 }
 
-void parse(){
+void parse_test(){
 	do{
-	token = emptyToken;
+	//token = emptyToken;
 	next_token();
-	print_token();
+	print_token(token);
 	} while(token.tokenkind != TOKEN_EOF);
 }
 
@@ -287,9 +293,8 @@ int main(int argc, char* argv[]){
 	stripcomments(stream);
 	stripnewlines(stream);
 	trimTrailing(stream);
-
-	for(int i = 0; *(stream+i) != 0; i++){
-		printf("%c:\t%d\n", *(stream+i), *(stream+i));
-	}
-	parse();
+	parse_test();
+	printf("%d\n", buf_len(tokens));
+	for(int i = 0; i < buf_len(tokens); i++)
+		print_token(tokens[i]);
 }
