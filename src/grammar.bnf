@@ -1,0 +1,30 @@
+<program> ::= <line> <program> | "EOF"
+
+<line> ::= "LABEL" | <directive> | <instruction>
+
+<directive> ::= "dw" "LITERAL"
+
+<instruction> ::= <CLS>
+                | <RET>
+                | <SYS>
+                | <JP>
+                | <CALL>
+                | <SE>
+                | <SNE>
+                | <LD>
+                | <ADD>
+                | <OR>
+                | <AND>
+                | <XOR>
+                | <SUB>
+                | <SHR>
+                | <SUBN>
+                | <SHL>
+                | <RND>
+                | <DRW>
+                | <SKP>
+                | <SKNP>
+
+<CLS> ::= "CLS"
+<RET> = "RET"
+<JP> 
