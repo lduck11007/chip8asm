@@ -2,31 +2,38 @@ program ::= line program | EOF
 
 line ::= LABEL | instruction
 
-instruction ::= CLS
-                | RET
-                | SYS
-                | JP
-                | CALL
-                | SE
-                | SNE
-                | LD
-                | ADD
-                | OR
-                | AND
-                | XOR
-                | SUB
-                | SHR
-                | SUBN
-                | SHL
-                | RND
-                | DRW
-                | SKP
-                | SKNP
-                | DW
-
-CLS ::= "CLS"
-RET ::= "RET"
-JP ::= "JP" location
-CALL ::= "CALL" location
-SE ::= "SE" register literal
-SNE ::= "SNE" register literal
+instruction ::= "CLS"
+                | "RET"
+                | "JP" LOCATION
+                | "CALL" LOCATION
+                | "SE" REGISTER LITERAL
+                | "SNE" REGISTER LITERAL
+                | "SE" REGISTER REGISTER
+                | "LD" REGISTER LITERAL
+                | "ADD" REGISTER LITERAL
+                | "LD" REGISTER REGISTER
+                | "OR" REGISTER REGISTER
+                | "AND" REGISTER REGISTER
+                | "XOR" REGISTER REGISTER
+                | "ADD" REGISTER REGISTER
+                | "SUB" REGISTER REGISTER
+                | "SHR" REGISTER REGISTER
+                | "SUBN" REGISTER REGISTER
+                | "SHL" REGISTER REGISTER
+                | "SNE" REGISTER REGISTER
+                | "LD" "I" LOCATION
+                | "JP" LOCATION
+                | "RND" REGISTER LITERAL
+                | "DRW" REGISTER REGISTER LITERAL
+                | "SKP" REGISTER 
+                | "SKNP" REGISTER
+                | "LD" REGISTER "DT"
+                | "LD" REGISTER "K"
+                | "LD" "DT" REGISTER
+                | "LD" "ST" REGISTER
+                | "ADD" "I" REGISTER
+                | "LD" "F" REGISTER
+                | "LD" "B" REGISTER
+                | "LD" "I" REGISTER
+                | "LD" REGISTER "I"
+    I DT K ST F B

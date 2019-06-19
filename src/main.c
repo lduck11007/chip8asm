@@ -15,6 +15,16 @@ enum TokenKind {
 	TOKEN_REGISTER,
 	TOKEN_UNKNOWN,
 	TOKEN_LOCATION,
+	TOKEN_DIRECTIVE,
+};
+
+enum Directives{
+	I = 1,
+	DT,
+	K,
+	ST,
+	F,
+	B,
 };
 
 enum Mnemonic{
@@ -47,6 +57,7 @@ typedef struct Token{
 		uint8_t reg;
 		uint16_t value;
 		enum Mnemonic mnemonic;
+		enum Directives directive;
 		char* label;
 	};
 } Token;
@@ -276,7 +287,7 @@ void parse_test(){
 void parse_program(){
 	if(token.tokenkind == TOKEN_EOF)
 		next();
-	parse_line();
+	//parse_line();
 }
 
 void next(){
@@ -301,9 +312,8 @@ int main(int argc, char* argv[]){
 	stripcomments(stream);
 	stripnewlines(stream);
 	trimTrailing(stream);
-	next_token();
-	parse_program();
-	/*parse_test();
+	//parse_program();
+	parse_test();
 	for(int i = 0; i < buf_len(tokens); i++)
-		print_token(tokens[i]);*/
+		print_token(tokens[i]);
 }

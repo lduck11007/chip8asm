@@ -1,5 +1,5 @@
 CC = gcc
-FLAGS = -Wall -Wpedantic
+FLAGS = -Wall -Wpedantic -g
 STD = c11
 BINNAME = main
 
