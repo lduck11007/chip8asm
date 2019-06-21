@@ -1,4 +1,3 @@
-stuff:
 DW vE 0x7
 CLS XOR
 SE V2 0xab

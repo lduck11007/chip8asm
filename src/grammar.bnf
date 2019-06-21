@@ -36,4 +36,13 @@ instruction ::= "CLS"
                 | "LD" "B" REGISTER
                 | "LD" "I" REGISTER
                 | "LD" REGISTER "I"
-    I DT K ST F B
+  /*
+    1:I
+    2:DT
+    3:K
+    4:ST
+    5:F
+    6:B
+
+
+  */

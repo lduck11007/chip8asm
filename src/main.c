@@ -69,12 +69,13 @@ typedef struct InternStr{
 
 char* stream;
 Token token;
+Token emptyToken;
 Token* tokens;
 InternStr* interns;
 
 char *str_intern_range(const char *start, const char *end){
 	size_t len = end - start;
-	for(size_t i = 0; i < buf_len(interns); i++){
+	for(size_t i = 0; i < stb_sb_count(interns); i++){
 		if(interns[i].len == len && strncmp(interns[i].str, start, len) == 0){
 			return interns[i].str;
 		}
@@ -82,7 +83,7 @@ char *str_intern_range(const char *start, const char *end){
 	char *str = malloc(len + 1);
 	memcpy(str, start, len);
 	str[len] = 0; //null byte
-	buf_push(interns, ((InternStr){len, str}));
+	stb_sb_push(interns, ((InternStr){len, str}));
 	return str;
 }
 
@@ -90,7 +91,7 @@ char *str_intern(const char *str) {		//only works with null-byte terminated stri
 	return str_intern_range(str, str + strlen(str));
 }
 
-void print_token(Token a){
+ void print_token(Token a){
 	switch(a.tokenkind){
 		case TOKEN_EOF:
 			printf("TOKEN EOF\n");
@@ -109,6 +110,9 @@ void print_token(Token a){
 			break;
 		case TOKEN_LOCATION:
 			printf("TOKEN LOCATION: %s\n", token.label);
+			break;
+		case TOKEN_DIRECTIVE:
+			printf("TOKEN DIRECTIVE: %d\n", token.directive);
 			break;
 		case TOKEN_UNKNOWN:
 			printf("UNKNOWN TOKEN: %s\n", token.label);
@@ -154,6 +158,30 @@ void next_token(){
 	} else if((str_intern_range(buf, buf+2) == str_intern("0b"))||(str_intern_range(buf, buf+2) == str_intern("0B"))){
 		token.tokenkind = TOKEN_LITERAL;
 		token.value = strtol(str_intern_range(buf+2, end), NULL, 2);
+		return;
+	} else if(buf == str_intern("I")){
+		token.tokenkind = TOKEN_DIRECTIVE;
+		token.directive = I;
+		return;
+	} else if(buf == str_intern("DT")){
+		token.tokenkind = TOKEN_DIRECTIVE;
+		token.directive = DT;
+		return;
+	} else if(buf == str_intern("K")){
+		token.tokenkind = TOKEN_DIRECTIVE;
+		token.directive = K;
+		return;
+	} else if(buf == str_intern("ST")){
+		token.tokenkind = TOKEN_DIRECTIVE;
+		token.directive = ST;
+		return;
+	} else if(buf == str_intern("F")){
+		token.tokenkind = TOKEN_DIRECTIVE;
+		token.directive = F;
+		return;
+	} else if(buf == str_intern("B")){
+		token.tokenkind = TOKEN_DIRECTIVE;
+		token.directive = B;
 		return;
 	} else if(buf == str_intern("CLS")){
 		token.tokenkind = TOKEN_MNEMONIC;
@@ -275,25 +303,6 @@ void fatal(const char *fmt, ...){
 	exit(1);
 }
 
-void parse_test(){
-	next_token();
-	
-	while(token.tokenkind != TOKEN_EOF){
-		print_token(token);
-		next_token();
-	}
-}
-
-void parse_program(){
-	if(token.tokenkind == TOKEN_EOF)
-		next();
-	//parse_line();
-}
-
-void next(){
-	buf_push(tokens, token);
-	next_token();
-}
 
 int main(int argc, char* argv[]){
     if(argc < 2)
@@ -313,7 +322,7 @@ int main(int argc, char* argv[]){
 	stripnewlines(stream);
 	trimTrailing(stream);
 	//parse_program();
-	parse_test();
-	for(int i = 0; i < buf_len(tokens); i++)
-		print_token(tokens[i]);
+	//parse_test();
+	
+
 }
